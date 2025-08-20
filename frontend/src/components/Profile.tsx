@@ -2,47 +2,27 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Heart, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ImageCard } from './ImageCard';
-import sampleWallpaper from '@/assets/sample-wallpaper-1.jpg';
-import sampleSticker from '@/assets/sample-sticker-1.jpg';
-import samplePoster from '@/assets/sample-poster-1.jpg';
+
+// Define the Asset interface to match our backend model
+interface Asset {
+    id: string;
+    _id: string;
+    url: string;
+    title: string;
+    category: 'wallpaper' | 'sticker' | 'poster';
+    width: number;
+    height: number;
+}
 
 interface ProfileProps {
   user: { name: string; email: string };
-  savedImages: string[];
+  savedImages: Asset[]; // Now expects an array of Asset objects
   onBack: () => void;
   onRemoveSaved: (imageId: string) => void;
 }
 
-// Mock saved images data
-const mockSavedImages = [
-  {
-    id: '1',
-    url: sampleWallpaper,
-    title: 'Abstract Geometric Wallpaper',
-    category: 'wallpaper' as const,
-    width: 16,
-    height: 9,
-  },
-  {
-    id: '2',
-    url: sampleSticker,
-    title: 'Kawaii Cat Sticker',
-    category: 'sticker' as const,
-    width: 1,
-    height: 1,
-  },
-  {
-    id: '3',
-    url: samplePoster,
-    title: 'Motivational Success Poster',
-    category: 'poster' as const,
-    width: 3,
-    height: 4,
-  },
-];
 
 export const Profile = ({ user, savedImages, onBack, onRemoveSaved }: ProfileProps) => {
-  const userSavedImages = mockSavedImages.filter(img => savedImages.includes(img.id));
 
   const handleDownload = (imageUrl: string) => {
     console.log('Downloading:', imageUrl);
@@ -72,30 +52,6 @@ export const Profile = ({ user, savedImages, onBack, onRemoveSaved }: ProfilePro
           </div>
         </motion.div>
 
-        {/* Stats */}
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-        >
-          <div className="glass rounded-2xl p-6 text-center">
-            <Heart className="w-8 h-8 text-red-500 mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-foreground">{savedImages.length}</h3>
-            <p className="text-muted-foreground">Saved Images</p>
-          </div>
-          <div className="glass rounded-2xl p-6 text-center">
-            <Download className="w-8 h-8 text-green-500 mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-foreground">0</h3>
-            <p className="text-muted-foreground">Downloads</p>
-          </div>
-          <div className="glass rounded-2xl p-6 text-center">
-            <div className="w-8 h-8 bg-primary rounded-full mx-auto mb-2" />
-            <h3 className="text-2xl font-bold text-foreground">Member</h3>
-            <p className="text-muted-foreground">Since Today</p>
-          </div>
-        </motion.div>
-
         {/* Saved Images */}
         <motion.div 
           className="mb-8"
@@ -103,21 +59,21 @@ export const Profile = ({ user, savedImages, onBack, onRemoveSaved }: ProfilePro
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <h2 className="text-2xl font-bold text-foreground mb-6">Saved Images</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-6">Saved Images ({savedImages.length})</h2>
           
-          {userSavedImages.length > 0 ? (
+          {savedImages.length > 0 ? (
             <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 space-y-4">
-              {userSavedImages.map((image, index) => (
+              {savedImages.map((image, index) => (
                 <motion.div
-                  key={image.id}
+                  key={image._id}
                   className="break-inside-avoid mb-4"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
                   <ImageCard
-                    image={image}
-                    onSave={onRemoveSaved}
+                    image={{...image, id: image._id}} // Pass the full image object
+                    onSave={() => onRemoveSaved(image._id)} // Pass the id to the handler
                     onDownload={handleDownload}
                     isSaved={true}
                   />

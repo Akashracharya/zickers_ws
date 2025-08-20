@@ -35,3 +35,21 @@ export const getAllAssets = async () => {
   if (!res.ok) throw new Error("Failed to fetch assets");
   return res.json();
 };
+
+// --- USER ACTIONS ---
+export const getSavedAssets = async (token) => {
+  const res = await fetch(`${API_URL}/users/saved`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to fetch saved assets");
+  return res.json();
+};
+
+export const toggleSaveAsset = async (assetId, token) => {
+  const res = await fetch(`${API_URL}/users/save/${assetId}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Failed to update saved status");
+  return res.json();
+};

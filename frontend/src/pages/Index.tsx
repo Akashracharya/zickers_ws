@@ -13,43 +13,56 @@ interface User {
   email: string;
 }
 
+// Define the Asset interface to match our backend model
+interface Asset {
+    id: string;
+    _id: string;
+    url: string;
+    title: string;
+    category: 'wallpaper' | 'sticker' | 'poster';
+    width: number;
+    height: number;
+}
+
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [savedImages, setSavedImages] = useState<string[]>([]);
+  const [savedAssetIds, setSavedAssetIds] = useState<string[]>([]);
+  const [savedAssets, setSavedAssets] = useState<Asset[]>([]); // To store full asset objects
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'home' | 'profile'>('home');
 
-  // Check for a token in localStorage when the app loads
+  // Function to fetch saved assets
+  const fetchSavedAssets = (token) => {
+    api.getSavedAssets(token)
+      .then(assets => {
+        setSavedAssets(assets); // Store full asset objects for the profile page
+        setSavedAssetIds(assets.map(asset => asset._id)); // Store just the IDs for the home page grid
+      })
+      .catch(console.error);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // If a token exists, try to fetch the user's profile
       api.getProfile(token)
         .then(userData => {
           setUser(userData);
+          fetchSavedAssets(token); // Fetch saved images after user is confirmed
         })
-        .catch(() => {
-          // If the token is invalid or expired, remove it
-          localStorage.removeItem('token');
-        });
+        .catch(() => localStorage.removeItem('token'));
     }
   }, []);
-
 
   const handleLogin = async (email, password) => {
     try {
       const data = await api.login(email, password);
       localStorage.setItem('token', data.token);
       setUser(data.user);
-      toast.success("Welcome back!", {
-        description: "You have successfully signed in.",
-      });
+      fetchSavedAssets(data.token); // Fetch saved images on login
+      toast.success("Welcome back!", { description: "You have successfully signed in." });
       setIsAuthDialogOpen(false);
     } catch (error) {
-      console.error(error);
-      toast.error("Login Failed", {
-        description: "Please check your email and password.",
-      });
+      toast.error("Login Failed", { description: "Please check your email and password." });
     }
   };
 
@@ -58,21 +71,33 @@ const Index = () => {
       const data = await api.signup(name, email, password);
       localStorage.setItem('token', data.token);
       setUser(data.user);
-      toast.success("Account created!", {
-        description: "Welcome to ZICKERS! Start exploring images.",
-      });
+      setSavedAssetIds([]); // New user has no saved images
+      setSavedAssets([]);
+      toast.success("Account created!", { description: "Welcome to ZICKERS!" });
       setIsAuthDialogOpen(false);
     } catch (error) {
-      console.error(error);
-      toast.error("Signup Failed", {
-        description: "This email may already be in use.",
-      });
+      toast.error("Signup Failed", { description: "This email may already be in use." });
     }
   };
 
-  const handleSaveImage = (imageId: string) => {
-    // We will implement this logic later when the user model is updated
-    toast.info("Save functionality coming soon!");
+  const handleSaveImage = async (imageId: string) => {
+    const token = localStorage.getItem('token');
+    if (!token || !user) {
+      handleAuthRequired();
+      return;
+    }
+
+    try {
+      const response = await api.toggleSaveAsset(imageId, token);
+      setSavedAssetIds(response.savedAssets);
+      
+      // Also update the full savedAssets list for the profile page
+      fetchSavedAssets(token);
+
+      toast.success(response.message);
+    } catch (error) {
+      toast.error("Something went wrong.");
+    }
   };
 
   const handleAuthRequired = () => {
@@ -84,12 +109,11 @@ const Index = () => {
 
   const handleLogout = () => {
     setUser(null);
-    setSavedImages([]);
+    setSavedAssetIds([]);
+    setSavedAssets([]);
     localStorage.removeItem('token');
     setCurrentView('home');
-    toast.info("Signed out", {
-      description: "You have been successfully signed out.",
-    });
+    toast.info("Signed out", { description: "You have been successfully signed out." });
   };
 
   return (
@@ -102,15 +126,10 @@ const Index = () => {
       />
 
       {currentView === 'home' ? (
-        <motion.div 
-          className="pt-24"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div className="pt-24" /* ... */ >
           <ImageGrid
             onSave={handleSaveImage}
-            savedImages={savedImages}
+            savedImages={savedAssetIds} // Use the new state here
             user={user}
             onAuthRequired={handleAuthRequired}
           />
@@ -119,7 +138,7 @@ const Index = () => {
         user && (
           <Profile
             user={user}
-            savedImages={savedImages}
+            savedImages={savedAssets} // Pass the full asset objects here
             onBack={() => setCurrentView('home')}
             onRemoveSaved={handleSaveImage}
           />

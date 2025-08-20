@@ -20,6 +20,11 @@ const userSchema = new mongoose.Schema(
     googleId: {
       type: String,
     },
+    // Add this field
+    savedAssets: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Asset'
+    }]
   },
   { timestamps: true }
 );

@@ -5,6 +5,7 @@ import passport from "passport";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/auth.js";
 import assetRoutes from "./routes/assets.js"; // Make sure this line is here
+import userRoutes from "./routes/user.js";
 
 dotenv.config();
 
@@ -23,7 +24,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/assets", assetRoutes); // Add this line
+app.use("/api/assets", assetRoutes);
+app.use("/api/users", userRoutes); // Add this line
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
