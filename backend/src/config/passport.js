@@ -14,25 +14,34 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
+        // 1. Check if user already exists in our DB
         let user = await User.findOne({ googleId: profile.id });
 
-        if (!user) {
-          user = new User({
+        if (user) {
+          // If user exists, pass them to the next middleware
+          return done(null, user);
+        } else {
+          // If user does not exist, create a new user in our DB
+          const newUser = new User({
             googleId: profile.id,
             name: profile.displayName,
             email: profile.emails[0].value,
+            // We set a placeholder password since it's required by our schema
+            password: "google-user-password", 
           });
-          await user.save();
+          
+          await newUser.save();
+          return done(null, newUser);
         }
-
-        return done(null, user);
       } catch (err) {
+        console.error("Error in Google Strategy:", err);
         return done(err, null);
       }
     }
   )
 );
 
+// These are not strictly necessary for our JWT strategy but are good Passport practice.
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -45,5 +54,3 @@ passport.deserializeUser(async (id, done) => {
     done(err, null);
   }
 });
-
-export default passport;
