@@ -18,12 +18,14 @@
     "license": "ISC",
     "dependencies": {
         "bcrypt": "^6.0.0",
+        "cloudinary": "^2.7.0",
         "cors": "^2.8.5",
         "dotenv": "^17.2.1",
         "express": "^5.1.0",
         "jsonwebtoken": "^9.0.2",
         "mongodb": "4.0",
         "mongoose": "^8.17.2",
+        "multer": "^2.0.2",
         "passport": "^0.7.0",
         "passport-google-oauth20": "^2.0.0"
     },
