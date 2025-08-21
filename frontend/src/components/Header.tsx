@@ -1,22 +1,26 @@
 import { motion } from 'framer-motion';
-import { User, LogIn, Image, LogOut, Heart } from 'lucide-react';
+import { User, LogIn, Heart, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import { Link } from 'react-router-dom';
+import logo from '@/assets/logo.png'; // Assuming your logo is named logo.png and is in the assets folder
 
 interface HeaderProps {
   onAuthClick: () => void;
-  user?: { name: string; email: string } | null;
+  user?: { name: string; email: string; role?: 'admin' | 'user' } | null;
   onProfileClick: () => void;
   onLogout: () => void;
 }
 
 export const Header = ({ onAuthClick, user, onProfileClick, onLogout }: HeaderProps) => {
   return (
+    
     <motion.header
       className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50"
       initial={{ y: -20, opacity: 0 }}
@@ -26,14 +30,14 @@ export const Header = ({ onAuthClick, user, onProfileClick, onLogout }: HeaderPr
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         {/* Logo */}
         <motion.div
-          className="text-2xl font-bold text-foreground cursor-pointer"
+          className="cursor-pointer"
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          onClick={() => window.location.href = '/'}
         >
-          ZICKERS
+          <Link to="/">
+            <img src={logo} alt="Zickers Logo" className="h-16 md:h-36" />
+          </Link>
         </motion.div>
-
 
         {/* Profile/Auth */}
         <div className="flex items-center gap-4">
@@ -53,13 +57,13 @@ export const Header = ({ onAuthClick, user, onProfileClick, onLogout }: HeaderPr
                   <Heart className="mr-2 h-4 w-4" />
                   <span>My Collection</span>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-
           ) : (
             <Button
               onClick={onAuthClick}
