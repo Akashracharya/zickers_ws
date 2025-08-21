@@ -1,6 +1,7 @@
 import Asset from "../models/asset.js";
 import cloudinary from "../config/cloudinary.js";
 
+
 // @desc    Get all assets
 // @route   GET /api/assets
 // @access  Public
