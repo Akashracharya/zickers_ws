@@ -30,3 +30,4 @@ app.use("/api/users", userRoutes); // Add this line
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+export default app;
