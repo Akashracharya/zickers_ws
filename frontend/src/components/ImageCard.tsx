@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Download, Heart, HeartIcon } from 'lucide-react';
+import { Download, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ImageCardProps {
@@ -13,13 +13,11 @@ interface ImageCardProps {
     height: number;
   };
   onSave: (imageId: string) => void;
-  onDownload: (imageUrl: string) => void;
   isSaved?: boolean;
 }
 
-export const ImageCard = ({ image, onSave, onDownload, isSaved = false }: ImageCardProps) => {
+export const ImageCard = ({ image, onSave, isSaved = false }: ImageCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -30,14 +28,33 @@ export const ImageCard = ({ image, onSave, onDownload, isSaved = false }: ImageC
     }
   };
 
-  const handleDownload = () => {
-    // Create a temporary link to trigger download
-    const link = document.createElement('a');
-    link.href = image.url;
-    link.download = `${image.title}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // This function forces the browser to download the image file
+  const handleDownload = async () => {
+    try {
+      // Fetch the image data as a blob
+      const response = await fetch(image.url);
+      const blob = await response.blob();
+      
+      // Create a temporary URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element to trigger the download
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${image.title.replace(/ /g, '_')}.jpg`; // Set a clean filename
+      
+      // Append to the document, click, and then remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the temporary URL
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      // Fallback for browsers that might have issues
+      window.open(image.url, '_blank');
+    }
   };
 
   return (
@@ -51,20 +68,16 @@ export const ImageCard = ({ image, onSave, onDownload, isSaved = false }: ImageC
       transition={{ duration: 0.3 }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
     >
-      {/* Image */}
       <img
         src={image.url}
         alt={image.title}
         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        onLoad={() => setImageLoaded(true)}
       />
 
-      {/* Category Tag */}
       <div className={`absolute top-3 left-3 px-3 py-1 rounded-full glass text-xs font-medium ${getCategoryColor(image.category)}`}>
         {image.category}
       </div>
 
-      {/* Hover Overlay */}
       <motion.div
         className="absolute inset-0 bg-black/40"
         initial={{ opacity: 0 }}
@@ -72,7 +85,6 @@ export const ImageCard = ({ image, onSave, onDownload, isSaved = false }: ImageC
         transition={{ duration: 0.2 }}
       />
 
-      {/* Action Buttons */}
       <motion.div
         className="absolute top-3 right-3 flex gap-2"
         initial={{ opacity: 0, y: -10 }}
@@ -92,13 +104,12 @@ export const ImageCard = ({ image, onSave, onDownload, isSaved = false }: ImageC
         <Button
           size="sm"
           className="glass-hover rounded-xl h-8 w-8 p-0"
-          onClick={handleDownload}
+          onClick={handleDownload} // Updated to use the new download function
         >
           <Download className="w-4 h-4" />
         </Button>
       </motion.div>
 
-      {/* Title on Hover */}
       <motion.div
         className="absolute bottom-0 left-0 right-0 p-4"
         initial={{ opacity: 0, y: 10 }}

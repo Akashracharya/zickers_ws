@@ -11,11 +11,10 @@ interface User {
   id: string;
   name: string;
   email: string;
+  role?: 'admin' | 'user';
 }
 
-// Define the Asset interface to match our backend model
 interface Asset {
-    id: string;
     _id: string;
     url: string;
     title: string;
@@ -27,16 +26,15 @@ interface Asset {
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [savedAssetIds, setSavedAssetIds] = useState<string[]>([]);
-  const [savedAssets, setSavedAssets] = useState<Asset[]>([]); // To store full asset objects
+  const [savedAssets, setSavedAssets] = useState<Asset[]>([]);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'home' | 'profile'>('home');
 
-  // Function to fetch saved assets
-  const fetchSavedAssets = (token) => {
+  const fetchSavedAssets = (token: string) => {
     api.getSavedAssets(token)
       .then(assets => {
-        setSavedAssets(assets); // Store full asset objects for the profile page
-        setSavedAssetIds(assets.map(asset => asset._id)); // Store just the IDs for the home page grid
+        setSavedAssets(assets);
+        setSavedAssetIds(assets.map(asset => asset._id));
       })
       .catch(console.error);
   };
@@ -47,7 +45,7 @@ const Index = () => {
       api.getProfile(token)
         .then(userData => {
           setUser(userData);
-          fetchSavedAssets(token); // Fetch saved images after user is confirmed
+          fetchSavedAssets(token);
         })
         .catch(() => localStorage.removeItem('token'));
     }
@@ -58,11 +56,11 @@ const Index = () => {
       const data = await api.login(email, password);
       localStorage.setItem('token', data.token);
       setUser(data.user);
-      fetchSavedAssets(data.token); // Fetch saved images on login
-      toast.success("Welcome back!", { description: "You have successfully signed in." });
+      fetchSavedAssets(data.token);
+      toast.success("Welcome back!");
       setIsAuthDialogOpen(false);
     } catch (error) {
-      toast.error("Login Failed", { description: "Please check your email and password." });
+      toast.error("Login Failed");
     }
   };
 
@@ -71,49 +69,52 @@ const Index = () => {
       const data = await api.signup(name, email, password);
       localStorage.setItem('token', data.token);
       setUser(data.user);
-      setSavedAssetIds([]); // New user has no saved images
+      setSavedAssetIds([]);
       setSavedAssets([]);
-      toast.success("Account created!", { description: "Welcome to ZICKERS!" });
+      toast.success("Account created!");
       setIsAuthDialogOpen(false);
     } catch (error) {
-      toast.error("Signup Failed", { description: "This email may already be in use." });
+      toast.error("Signup Failed");
     }
   };
-
+  
   const handleSaveImage = async (imageId: string) => {
     const token = localStorage.getItem('token');
     if (!token || !user) {
-      handleAuthRequired();
+      setIsAuthDialogOpen(true);
       return;
     }
-
     try {
       const response = await api.toggleSaveAsset(imageId, token);
       setSavedAssetIds(response.savedAssets);
-      
-      // Also update the full savedAssets list for the profile page
-      fetchSavedAssets(token);
-
+      if (token) fetchSavedAssets(token);
       toast.success(response.message);
     } catch (error) {
       toast.error("Something went wrong.");
     }
   };
 
-  const handleAuthRequired = () => {
-    setIsAuthDialogOpen(true);
-    toast.error("Sign in required", {
-      description: "Please sign in to save images to your collection.",
-    });
-  };
-
   const handleLogout = () => {
     setUser(null);
-    setSavedAssetIds([]);
-    setSavedAssets([]);
     localStorage.removeItem('token');
     setCurrentView('home');
-    toast.info("Signed out", { description: "You have been successfully signed out." });
+    setSavedAssetIds([]);
+    setSavedAssets([]);
+    toast.info("Signed out");
+  };
+  
+  // This function handles both cases for the "My Collection" button
+  const handleMyCollectionClick = () => {
+    if (user) {
+      // Case 1: User is logged in, show the profile
+      setCurrentView('profile');
+    } else {
+      // Case 2: User is not logged in, open the auth dialog
+      setIsAuthDialogOpen(true);
+      toast.info("Please sign in", {
+        description: "You need to be logged in to view your collection."
+      });
+    }
   };
 
   return (
@@ -121,36 +122,38 @@ const Index = () => {
       <Header
         user={user}
         onAuthClick={() => setIsAuthDialogOpen(true)}
-        onProfileClick={() => setCurrentView('profile')}
+        onProfileClick={handleMyCollectionClick} // This now handles both cases
         onLogout={handleLogout}
       />
 
+      {isAuthDialogOpen && (
+        <AuthDialog
+          isOpen={isAuthDialogOpen}
+          onClose={() => setIsAuthDialogOpen(false)}
+          onLogin={handleLogin}
+          onSignUp={handleSignUp}
+        />
+      )}
+      
       {currentView === 'home' ? (
-        <motion.div className="pt-24" /* ... */ >
+        <motion.div className="pt-24" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           <ImageGrid
             onSave={handleSaveImage}
-            savedImages={savedAssetIds} // Use the new state here
+            savedImages={savedAssetIds}
             user={user}
-            onAuthRequired={handleAuthRequired}
+            onAuthRequired={() => setIsAuthDialogOpen(true)}
           />
         </motion.div>
       ) : (
         user && (
           <Profile
             user={user}
-            savedImages={savedAssets} // Pass the full asset objects here
+            savedImages={savedAssets}
             onBack={() => setCurrentView('home')}
             onRemoveSaved={handleSaveImage}
           />
         )
       )}
-
-      <AuthDialog
-        isOpen={isAuthDialogOpen}
-        onClose={() => setIsAuthDialogOpen(false)}
-        onLogin={handleLogin}
-        onSignUp={handleSignUp}
-      />
     </div>
   );
 };
