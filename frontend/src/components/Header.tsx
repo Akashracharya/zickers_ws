@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { User, LogIn, Heart, LogOut } from 'lucide-react';
+import { User, LogIn, Heart, LogOut, Info, Instagram, Twitter, Github } from 'lucide-react'; // Import new icons
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -41,11 +41,35 @@ export const Header = ({ onAuthClick, user, onProfileClick, onLogout }: HeaderPr
 
           {/* Navigation and Auth */}
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* My Collection Button - Always Visible */}
+            {/* About Button with Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="glass-hover rounded-xl h-10 px-4">
+                  <Info className="w-4 h-4" />
+                  <span className="hidden sm:inline ml-2">About</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <a href="https://www.instagram.com/zickers.ws/" target="_blank" rel="noopener noreferrer">
+                  <DropdownMenuItem>
+                    <Instagram className="w-4 h-4 mr-2" />
+                    <span>Instagram</span>
+                  </DropdownMenuItem>
+                </a>
+                <a href="#" target="_blank" rel="noopener noreferrer">
+                  <DropdownMenuItem>
+                    <Github className="w-4 h-4 mr-2" />
+                    <span>GitHub</span>
+                  </DropdownMenuItem>
+                </a>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* My Collection Button */}
             <Button
               variant="ghost"
               className="glass-hover rounded-xl h-10 px-4"
-              onClick={onProfileClick} // This click is handled on the main page
+              onClick={onProfileClick}
             >
               <Heart className="w-4 h-4" />
               <span className="hidden sm:inline ml-2">My Collection</span>
@@ -64,7 +88,6 @@ export const Header = ({ onAuthClick, user, onProfileClick, onLogout }: HeaderPr
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end">
-                  {/* The profile link is now in the main header, but we keep one here for consistency in the dropdown */}
                   <DropdownMenuItem onClick={onProfileClick}>
                     <Heart className="w-4 h-4 mr-2" />
                     <span>My Collection</span>

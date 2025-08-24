@@ -69,10 +69,6 @@ export const ImageGrid = ({ onSave, savedImages, user, onAuthRequired }: ImageGr
     onSave(imageId);
   };
 
-  const handleDownload = (imageUrl: string) => {
-    console.log('Downloading:', imageUrl);
-  };
-
   const categories = [
     { id: 'all', label: 'All' },
     { id: 'wallpaper', label: 'Wallpapers' },
@@ -89,32 +85,34 @@ export const ImageGrid = ({ onSave, savedImages, user, onAuthRequired }: ImageGr
     <div className="container mx-auto px-4 py-8">
       {/* --- Category Filter --- */}
 
-      {/* Desktop Filter */}
-      <motion.div 
-        className="hidden md:flex justify-center mb-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="glass p-2 rounded-full inline-flex items-center gap-2 border border-primary">
-          {categories.map((category) => (
-            <Button
-              key={category.id}
-              variant={selectedCategory === category.id ? "default" : "ghost"}
-              onClick={() => handleCategorySelect(category.id as any)}
-              className="rounded-full h-auto px-6 py-2 text-sm transition-all duration-200"
-            >
-              {category.label}
-            </Button>
-          ))}
-        </div>
-      </motion.div>
+      {/* Desktop Filter (Visible on medium screens and up) */}
+      <div className="hidden md:block sticky top-20 z-40 py-4 -mx-4 px-4">
+        <motion.div 
+          className="flex justify-center"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="glass p-2 rounded-full inline-flex items-center gap-2 border border-primary">
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "ghost"}
+                onClick={() => handleCategorySelect(category.id as any)}
+                className="rounded-full h-auto px-6 py-2 text-sm transition-all duration-200"
+              >
+                {category.label}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
+      </div>
 
-      {/* Mobile Filter */}
-      <div className="flex justify-end mb-4 md:hidden">
+      {/* Mobile Filter Button (Visible on small screens) */}
+      <div className="md:hidden sticky top-20 z-40 py-4 -mx-4 px-4 flex justify-end">
          <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="ghost" size="sm" className="glass-hover rounded-xl gap-2">
                 <Filter className="h-4 w-4" />
                 <span>Filter</span>
               </Button>
@@ -142,7 +140,7 @@ export const ImageGrid = ({ onSave, savedImages, user, onAuthRequired }: ImageGr
 
       {/* Pinterest-style Grid */}
       <motion.div 
-        className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4"
+        className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-4 space-y-4 pt-8"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
@@ -161,7 +159,6 @@ export const ImageGrid = ({ onSave, savedImages, user, onAuthRequired }: ImageGr
               <ImageCard
                 image={{...image, id: image._id}}
                 onSave={handleSave}
-                onDownload={handleDownload}
                 isSaved={savedImages.includes(image._id)}
               />
             </motion.div>
