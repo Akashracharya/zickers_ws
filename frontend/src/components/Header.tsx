@@ -35,7 +35,7 @@ export const Header = ({ onAuthClick, user, onProfileClick, onLogout }: HeaderPr
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
         >
           <Link to="/">
-            <img src={logo} alt="Zickers Logo" className="h-16 md:h-36" />
+            <img src={logo} alt="Zickers Logo" className="h-32 md:h-36" />
           </Link>
         </motion.div>
 
